@@ -97,7 +97,16 @@ app.use('/api/offices', authMiddleware, devOnlyMiddleware, officesRoutes);
 app.use('/api/users', authMiddleware, devOnlyMiddleware, usersRoutes);
 app.use('/api/security', authMiddleware, devOnlyMiddleware, securityRoutes);
 
-app.get('/api/health', (_, res) => res.json({ ok: true }));
+app.get('/api/health', async (_, res) => {
+  let db = 'ok';
+  try {
+    const { prisma } = await import('./lib/prisma.js');
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (e) {
+    db = 'error';
+  }
+  res.json({ ok: true, api: true, db });
+});
 
 const useHttps = process.env.USE_HTTPS === 'true' || process.env.USE_HTTPS === '1';
 const sslKeyPath = process.env.SSL_KEY_PATH || process.env.HTTPS_KEY_PATH;

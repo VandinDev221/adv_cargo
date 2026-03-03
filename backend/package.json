@@ -8,6 +8,7 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
+    "db:check": "node scripts/check-db.js",
     "security:block": "node scripts/block-ip.js",
     "security:unblock": "node scripts/unblock-ip.js",
     "security:report": "node scripts/threat-report.js",

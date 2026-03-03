@@ -10,7 +10,8 @@
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start",
     "db:push": "cd backend && npx prisma db push",
-    "db:seed": "cd backend && npx prisma db seed"
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:check": "cd backend && npm run db:check"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

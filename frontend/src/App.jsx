@@ -16,6 +16,7 @@ import Logs from './pages/Logs';
 import LogsTodos from './pages/LogsTodos';
 import Users from './pages/Users';
 import Security from './pages/Security';
+import Status from './pages/Status';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -29,6 +30,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/status" element={<Status />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="processos" element={<Processes />} />
