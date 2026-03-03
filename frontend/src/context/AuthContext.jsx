@@ -4,6 +4,24 @@ const AuthContext = createContext(null);
 
 const API = import.meta.env.VITE_API_URL || '';
 
+async function parseJsonResponse(res) {
+  const text = await res.text();
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    if (text.startsWith('<!') || text.startsWith('The page')) {
+      throw new Error('A API retornou HTML. Verifique se VITE_API_URL aponta para o backend.');
+    }
+    throw new Error(text.slice(0, 80) || res.statusText);
+  }
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error('Resposta inválida da API. Verifique VITE_API_URL.');
+  }
+  return data;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +35,11 @@ export function AuthProvider({ children }) {
     fetch(`${API}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(async (r) => {
+        const data = await parseJsonResponse(r);
+        if (!r.ok) throw new Error(data.error);
+        return data;
+      })
       .then(setUser)
       .catch(() => localStorage.removeItem('token'))
       .finally(() => setLoading(false));
@@ -29,7 +51,7 @@ export function AuthProvider({ children }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || 'Erro ao entrar');
     localStorage.setItem('token', data.token);
     setUser(data.user);
@@ -42,7 +64,7 @@ export function AuthProvider({ children }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar');
     localStorage.setItem('token', data.token);
     setUser(data.user);
