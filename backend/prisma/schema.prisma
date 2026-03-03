@@ -1,0 +1,217 @@
+// AdvCargo - Schema do banco de dados
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Escritório / Organização (multi-tenant)
+model Office {
+  id          String   @id @default(uuid())
+  name        String
+  plan        String   @default("individual") // individual | team | office
+  maxUsers    Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+  clients     Client[]
+  processes   Process[]
+  financials  Financial[]
+}
+
+// Usuário (advogado)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("advogado") // admin | advogado | assistente
+  officeId  String
+  office    Office   @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  processes Process[] @relation("ProcessResponsible")
+  deadlines Deadline[]
+  hearings  Hearing[]
+  logs      AuditLog[]
+}
+
+// Cliente
+model Client {
+  id        String    @id @default(uuid())
+  name      String
+  document  String    // CPF ou CNPJ
+  type      String    @default("pf") // pf | pj
+  email     String?
+  phone     String?
+  address   String?
+  officeId  String
+  office    Office    @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  processes Process[]
+  documents Document[]
+}
+
+// Processo judicial
+model Process {
+  id            String   @id @default(uuid())
+  number        String   // Número CNJ
+  court         String?
+  subject       String?
+  causeValue    Float?   // Valor da causa
+  status        String   @default("ativo") // ativo | arquivado | suspenso | encerrado
+  parts         String?  // Partes (texto ou JSON)
+  responsibleId String?
+  responsible   User?    @relation("ProcessResponsible", fields: [responsibleId], references: [id])
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id])
+  officeId      String
+  office        Office   @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  timeline      ProcessEvent[]
+  documents     Document[]
+  deadlines     Deadline[]
+  financials    Financial[]
+  hearings      Hearing[]
+}
+
+// Eventos na timeline do processo
+model ProcessEvent {
+  id        String   @id @default(uuid())
+  processId String
+  process   Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
+  title     String
+  description String?
+  date      DateTime @default(now())
+  type      String   @default("geral") // movimentacao | audiência | decisão | geral
+  createdAt DateTime @default(now())
+}
+
+// Documentos anexos
+model Document {
+  id        String   @id @default(uuid())
+  processId String?
+  process   Process? @relation(fields: [processId], references: [id], onDelete: Cascade)
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  path      String
+  mimeType  String?
+  size      Int?
+  createdAt DateTime @default(now())
+}
+
+// Prazos e compromissos
+model Deadline {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  type        String   @default("processual") // processual | extrajudicial | compromisso
+  priority    String   @default("rotina") // urgente | importante | rotina
+  completed   Boolean  @default(false)
+  processId   String?
+  process     Process? @relation(fields: [processId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notify24h   Boolean  @default(true)
+  notify48h   Boolean  @default(true)
+  notify7d    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Audiências
+model Hearing {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  time        String?
+  location    String?
+  type        String?  // audiência de instrução | conciliação | etc
+  processId   String?
+  process     Process? @relation(fields: [processId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completed   Boolean  @default(false)
+  calendarSync String? // id evento Google/Outlook
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Lançamentos financeiros (honorários, despesas, receitas)
+model Financial {
+  id          String   @id @default(uuid())
+  processId   String?
+  process     Process? @relation(fields: [processId], references: [id], onDelete: SetNull)
+  type        String   // honorario | despesa | receita
+  description String
+  value       Float
+  date        DateTime @default(now())
+  receiptUrl  String?
+  officeId    String
+  office      Office   @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+// Plano de assinatura (SaaS)
+model Subscription {
+  id        String   @id @default(uuid())
+  officeId  String   @unique
+  plan      String   // individual | team | office
+  status    String   @default("trial") // trial | active | cancelled
+  trialEnds DateTime?
+  periodEnd DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Logs de auditoria do sistema
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  officeId  String?
+  action    String   // ex: auth.login, process.create, client.update
+  ip        String?
+  userAgent String?
+  path      String?
+  method    String?
+  payload   String?  // JSON compacto com dados relevantes
+  createdAt DateTime @default(now())
+}
+
+// Registro de todas as requisições HTTP (não exclui nenhuma)
+model RequestLog {
+  id         String   @id @default(uuid())
+  ip         String?
+  method     String?
+  path       String?  @db.Text
+  statusCode Int?
+  userAgent  String?  @db.Text
+  createdAt  DateTime @default(now())
+}
+
+// IPs bloqueados por ameaça ou decisão administrativa
+model BlockedIp {
+  id        String   @id @default(uuid())
+  ip        String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+// Ameaças detectadas (padrões suspeitos, tentativas de ataque)
+model ThreatLog {
+  id         String   @id @default(uuid())
+  ip         String?
+  path       String?  @db.Text
+  method     String?
+  threatType String   // sql_injection | xss | path_traversal | suspicious_pattern | brute_force
+  payload    String?  @db.Text
+  createdAt  DateTime @default(now())
+}

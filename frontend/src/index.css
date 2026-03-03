@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+}
+
+.dark {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #334155;
+}
+
+body {
+  @apply font-sans antialiased;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Atalhos de teclado hint */
+kbd {
+  @apply px-1.5 py-0.5 text-xs rounded bg-slate-200 dark:bg-slate-600 font-mono;
+}

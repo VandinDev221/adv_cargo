@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: advcargo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: advcargo
+    ports:
+      - "5432:5432"
+    volumes:
+      - advcargo_pgdata:/var/lib/postgresql/data
+
+volumes:
+  advcargo_pgdata:
