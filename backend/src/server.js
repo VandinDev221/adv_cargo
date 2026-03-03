@@ -55,18 +55,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS: aceita FRONTEND_URL (uma ou várias origens separadas por vírgula)
+// CORS: aceita FRONTEND_URL (uma ou várias origens separadas por vírgula); em produção aceita *.vercel.app
 const corsOrigins = (process.env.FRONTEND_URL || 'https://localhost:5173')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
-const allowVercelPreview = process.env.NODE_ENV === 'production' && corsOrigins.some((o) => o.includes('vercel.app'));
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     if (corsOrigins.includes(origin)) return cb(null, origin);
-    // Em produção: permite qualquer subdomínio *.vercel.app se FRONTEND_URL tiver um app Vercel
-    if (allowVercelPreview && origin.endsWith('.vercel.app')) return cb(null, origin);
+    // Em produção: sempre permite qualquer *.vercel.app (evita CORS quando FRONTEND_URL não está definida)
+    if (isProduction && origin.endsWith('.vercel.app')) return cb(null, origin);
     return cb(null, false);
   },
   credentials: true,
