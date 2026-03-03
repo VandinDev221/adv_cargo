@@ -84,38 +84,43 @@ Ou na raiz: `npm run dev` (sobe backend e frontend juntos).
 
 ## Deploy na Vercel (usar os dados que já existem)
 
-O frontend sobe na Vercel; o backend e o banco ficam em outros serviços. Para ter os **mesmos dados** (usuários demo, Hub Central, etc.) em produção:
+O frontend sobe na Vercel; o backend e o banco ficam em outros serviços. Este projeto usa **[Neon](https://neon.tech)** como PostgreSQL em produção (plano gratuito).
 
-### 1. Banco em produção (PostgreSQL na nuvem)
+### 1. Criar o banco no Neon
 
-Crie um PostgreSQL em um destes (gratuito para começar):
+1. Acesse [console.neon.tech](https://console.neon.tech) e faça login (ou crie conta).
+2. **New Project** → escolha nome (ex.: `advcargo`) e região.
+3. Após criar, na dashboard copie a **Connection string** (opção **Pooled connection** ou **Direct**).  
+   Exemplo: `postgresql://usuario:senha@ep-xxx-xxx.region.aws.neon.tech/neondb?sslmode=require`  
+   O Neon já inclui `?sslmode=require`; se não tiver, adicione.
 
-- [Neon](https://neon.tech)  
-- [Vercel Postgres](https://vercel.com/storage/postgres)  
-- [Supabase](https://supabase.com)  
+### 2. Enviar schema e dados para o Neon
 
-Copie a **connection string** (ex.: `postgresql://user:pass@host/db?sslmode=require`).
+No seu PC, na pasta `backend`, use a URL do Neon **só para estes comandos**:
 
-### 2. Enviar schema e dados para o banco de produção
-
-No seu PC, na pasta `backend`, use a URL do banco de produção **só para estes comandos**:
-
-```bash
+**PowerShell (Windows):**
+```powershell
 cd backend
-set DATABASE_URL=postgresql://usuario:senha@host:5432/banco?sslmode=require
+$env:DATABASE_URL="postgresql://usuario:senha@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 npx prisma db push
 npx prisma db seed
 ```
 
-(No PowerShell: `$env:DATABASE_URL="postgresql://..."; npx prisma db push; npx prisma db seed`.)
+**Bash (Linux/macOS):**
+```bash
+cd backend
+export DATABASE_URL="postgresql://usuario:senha@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+npx prisma db push
+npx prisma db seed
+```
 
-Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com, vanderson@hubcentral.com, clientes, processos, etc.) ficam no banco de produção.
+Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com, vanderson@hubcentral.com, clientes, processos, etc.) ficam no Neon.
 
 ### 3. Backend em produção
 
 Suba a API em [Railway](https://railway.app), [Render](https://render.com) ou similar:
 
-- Defina a variável **DATABASE_URL** com a mesma connection string do passo 1.
+- Defina a variável **DATABASE_URL** com a **mesma connection string do Neon** (passo 1).
 - Defina **JWT_SECRET** e **FRONTEND_URL** (URL do frontend na Vercel, ex. `https://adv-cargo.vercel.app`).
 - Comando de start: `npm start` (ou `node src/server.js`), raiz do backend.
 
@@ -134,7 +139,7 @@ No projeto na Vercel (conectado a este repositório):
 
 O build do frontend usa `VITE_API_URL`; a aplicação na Vercel passará a usar a API e o banco de produção com os dados do seed.
 
-**Resumo:** Banco (Neon/Vercel Postgres/Supabase) → `db push` + `db seed` com essa URL → Backend (Railway/Render) com a mesma `DATABASE_URL` → Frontend na Vercel com `VITE_API_URL` apontando para o backend.
+**Resumo:** Neon (connection string) → `db push` + `db seed` no backend → Backend (Railway/Render) com a mesma `DATABASE_URL` → Frontend na Vercel com `VITE_API_URL` apontando para o backend.
 
 ## Funcionalidades
 
