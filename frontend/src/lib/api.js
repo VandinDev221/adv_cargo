@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL || '';
+import { apiUrl } from './config.js';
 
 function getHeaders() {
   const token = localStorage.getItem('token');
@@ -9,7 +9,7 @@ function getHeaders() {
 }
 
 export async function api(path, options = {}) {
-  const res = await fetch(`${API}${path}`, {
+  const res = await fetch(apiUrl(path), {
     ...options,
     headers: { ...getHeaders(), ...options.headers },
   });
@@ -43,7 +43,7 @@ export const processes = {
   deleteTimeline: (id, eventId) => api(`/api/processes/${id}/timeline/${eventId}`, { method: 'DELETE' }),
   uploadDocument: (id, formData) => {
     const token = localStorage.getItem('token');
-    return fetch(`${API}/api/processes/${id}/documents`, {
+    return fetch(apiUrl(`/api/processes/${id}/documents`), {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

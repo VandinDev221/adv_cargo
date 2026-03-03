@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Database, Server, RefreshCw, CheckCircle, XCircle, Home } from 'lucide-react';
-
-const API = import.meta.env.VITE_API_URL || '';
+import { API_BASE, apiUrl } from '../lib/config.js';
 
 export default function Status() {
   const [backend, setBackend] = useState(null);
@@ -16,8 +15,8 @@ export default function Status() {
     setBackend(null);
     setDb(null);
     try {
-      const url = API ? `${API.replace(/\/$/, '')}/api/health` : '/api/health';
-      const res = await fetch(url);
+      const url = apiUrl('/api/health');
+      const res = await fetch(url, { mode: 'cors' });
       const text = await res.text();
       let data = {};
       try {
@@ -34,7 +33,7 @@ export default function Status() {
     } catch (e) {
       setBackend('error');
       setError(
-        API
+        API_BASE
           ? `Não foi possível conectar ao backend (${e.message || 'erro de rede'}). Verifique se a API está no ar e se VITE_API_URL está correto.`
           : 'URL da API não configurada (VITE_API_URL). Em desenvolvimento, use o proxy do Vite.'
       );
@@ -120,6 +119,22 @@ export default function Status() {
               </p>
             )}
 
+            {backend !== 'ok' && (
+              <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-4 rounded-xl space-y-2">
+                <p className="font-medium text-slate-800 dark:text-slate-200">Como conectar:</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Suba o backend (Railway, Render, etc.) com a mesma <code className="text-xs bg-slate-200 dark:bg-slate-700 px-1 rounded">DATABASE_URL</code> (ex.: Neon).</li>
+                  <li>Na Vercel: Settings → Environment Variables → adicione <code className="text-xs bg-slate-200 dark:bg-slate-700 px-1 rounded">VITE_API_URL</code> = URL do seu backend (ex.: <code className="text-xs bg-slate-200 dark:bg-slate-700 px-1 rounded">https://seu-projeto.up.railway.app</code> ou Render, etc.), sem barra no final.</li>
+                  <li>Faça um novo deploy do frontend (Redeploy) para a variável ser usada no build.</li>
+                </ol>
+                {!API_BASE && (
+                  <p className="text-amber-700 dark:text-amber-400 mt-2">
+                    Agora: <strong>VITE_API_URL</strong> está vazio. Configure na Vercel e faça redeploy.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
@@ -138,9 +153,9 @@ export default function Status() {
           </div>
         )}
 
-        {API && (
-          <p className="mt-4 text-xs text-slate-400 truncate" title={API}>
-            API: {API}
+        {API_BASE && (
+          <p className="mt-4 text-xs text-slate-400 truncate" title={API_BASE}>
+            API: {API_BASE}
           </p>
         )}
       </div>

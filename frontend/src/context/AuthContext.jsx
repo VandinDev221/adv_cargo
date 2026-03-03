@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiUrl } from '../lib/config.js';
 
 const AuthContext = createContext(null);
-
-const API = import.meta.env.VITE_API_URL || '';
 
 async function parseJsonResponse(res) {
   const text = await res.text();
@@ -33,7 +32,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    fetch(`${API}/api/auth/me`, {
+    fetch(apiUrl('/api/auth/me'), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (r) => {
@@ -47,7 +46,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await fetch(`${API}/api/auth/login`, {
+    const res = await fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -60,7 +59,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (payload) => {
-    const res = await fetch(`${API}/api/auth/register`, {
+    const res = await fetch(apiUrl('/api/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

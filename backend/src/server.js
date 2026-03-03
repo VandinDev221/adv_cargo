@@ -104,6 +104,7 @@ app.get('/api/health', async (_, res) => {
     await prisma.$queryRaw`SELECT 1`;
   } catch (e) {
     db = 'error';
+    console.error('[health] DB connection failed:', e?.message || e);
   }
   res.json({ ok: true, api: true, db });
 });
