@@ -116,15 +116,24 @@ npx prisma db seed
 
 Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com, vanderson@hubcentral.com, clientes, processos, etc.) ficam no Neon.
 
-### 3. Backend em produção
+### 3. Backend no Railway
 
-Suba a API em [Railway](https://railway.app), [Render](https://render.com) ou similar:
+1. Acesse [railway.app](https://railway.app), faça login (GitHub) e **New Project**.
+2. Escolha **Deploy from GitHub repo** e selecione o repositório **adv_cargo**.
+3. **Configurar o serviço:**
+   - Clique no serviço criado → **Settings**.
+   - **Root Directory:** informe `backend` (para o Railway usar só a pasta do backend).
+   - **Build Command:** `npm run build` (roda `prisma generate`).
+   - **Start Command:** `npm start` (ou deixe em branco; o padrão é `npm start`).
+4. **Variáveis de ambiente** (Settings → **Variables** ou **Variables** no painel):
+   - `DATABASE_URL` = connection string do Neon (a mesma do passo 1).
+   - `JWT_SECRET` = uma chave secreta forte (ex.: gere com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
+   - `FRONTEND_URL` = URL do frontend na Vercel (ex.: `https://adv-cargo.vercel.app`), para CORS.
+   - (Opcional) `NODE_ENV` = `production`.
+5. **Domínio público:** em **Settings** → **Networking** → **Generate Domain**. O Railway vai gerar uma URL (ex.: `https://advcargo-production-xxxx.up.railway.app`).
+6. Anote essa URL — será o valor de **VITE_API_URL** na Vercel.
 
-- Defina a variável **DATABASE_URL** com a **mesma connection string do Neon** (passo 1).
-- Defina **JWT_SECRET** e **FRONTEND_URL** (URL do frontend na Vercel, ex. `https://adv-cargo.vercel.app`).
-- Comando de start: `npm start` (ou `node src/server.js`), raiz do backend.
-
-Anote a URL da API (ex.: `https://advcargo-api.up.railway.app`).
+Se preferir [Render](https://render.com) ou outro serviço, use as mesmas variáveis e comando de start a partir da pasta `backend`.
 
 ### 4. Frontend na Vercel
 
