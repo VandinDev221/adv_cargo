@@ -102,11 +102,11 @@ export default function Layout() {
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 w-full max-w-md mx-4 text-left"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 w-full min-w-0 max-w-md mx-2 sm:mx-4 text-left"
         >
           <Search className="w-4 h-4 shrink-0" />
-          <span className="flex-1">Buscar processos, clientes... </span>
-          <kbd>Ctrl+K</kbd>
+          <span className="flex-1 min-w-0 truncate">Buscar processos, clientes...</span>
+          <kbd className="hidden sm:inline-flex px-1.5 py-0.5 text-xs rounded bg-slate-200 dark:bg-slate-600">Ctrl+K</kbd>
         </button>
         <div className="flex items-center gap-2">
           <button
