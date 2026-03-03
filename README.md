@@ -82,6 +82,60 @@ npm run dev
 
 Ou na raiz: `npm run dev` (sobe backend e frontend juntos).
 
+## Deploy na Vercel (usar os dados que já existem)
+
+O frontend sobe na Vercel; o backend e o banco ficam em outros serviços. Para ter os **mesmos dados** (usuários demo, Hub Central, etc.) em produção:
+
+### 1. Banco em produção (PostgreSQL na nuvem)
+
+Crie um PostgreSQL em um destes (gratuito para começar):
+
+- [Neon](https://neon.tech)  
+- [Vercel Postgres](https://vercel.com/storage/postgres)  
+- [Supabase](https://supabase.com)  
+
+Copie a **connection string** (ex.: `postgresql://user:pass@host/db?sslmode=require`).
+
+### 2. Enviar schema e dados para o banco de produção
+
+No seu PC, na pasta `backend`, use a URL do banco de produção **só para estes comandos**:
+
+```bash
+cd backend
+set DATABASE_URL=postgresql://usuario:senha@host:5432/banco?sslmode=require
+npx prisma db push
+npx prisma db seed
+```
+
+(No PowerShell: `$env:DATABASE_URL="postgresql://..."; npx prisma db push; npx prisma db seed`.)
+
+Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com, vanderson@hubcentral.com, clientes, processos, etc.) ficam no banco de produção.
+
+### 3. Backend em produção
+
+Suba a API em [Railway](https://railway.app), [Render](https://render.com) ou similar:
+
+- Defina a variável **DATABASE_URL** com a mesma connection string do passo 1.
+- Defina **JWT_SECRET** e **FRONTEND_URL** (URL do frontend na Vercel, ex. `https://adv-cargo.vercel.app`).
+- Comando de start: `npm start` (ou `node src/server.js`), raiz do backend.
+
+Anote a URL da API (ex.: `https://advcargo-api.up.railway.app`).
+
+### 4. Frontend na Vercel
+
+No projeto na Vercel (conectado a este repositório):
+
+1. **Settings → Environment Variables**
+2. Adicione:
+   - **Nome:** `VITE_API_URL`  
+   - **Valor:** URL do backend (ex.: `https://advcargo-api.up.railway.app`)  
+   - Marque **Production**, **Preview** e **Development** se quiser.
+3. Faça um novo **Deploy** (Redeploy ou push no `main`).
+
+O build do frontend usa `VITE_API_URL`; a aplicação na Vercel passará a usar a API e o banco de produção com os dados do seed.
+
+**Resumo:** Banco (Neon/Vercel Postgres/Supabase) → `db push` + `db seed` com essa URL → Backend (Railway/Render) com a mesma `DATABASE_URL` → Frontend na Vercel com `VITE_API_URL` apontando para o backend.
+
 ## Funcionalidades
 
 - **Processos:** Cadastro (número CNJ, partes, assunto, valor), timeline, status (Ativo, Arquivado, Suspenso, Encerrado)
