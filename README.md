@@ -130,7 +130,7 @@ Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com,
    - `JWT_SECRET` = uma chave secreta forte (ex.: gere com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
    - `FRONTEND_URL` = URL do frontend na Vercel (ex.: `https://adv-cargo.vercel.app`), para CORS.
    - (Opcional) `NODE_ENV` = `production`.
-5. **Domínio público:** em **Settings** → **Networking** → **Generate Domain**. O Railway vai gerar uma URL (ex.: `https://advcargo-production-xxxx.up.railway.app`).
+5. **Domínio público:** em **Settings** → **Networking** → **Generate Domain**. Ex.: `https://advcargo-production.up.railway.app`.
 6. Anote essa URL — será o valor de **VITE_API_URL** na Vercel.
 
 Se preferir [Render](https://render.com) ou outro serviço, use as mesmas variáveis e comando de start a partir da pasta `backend`.
@@ -142,7 +142,7 @@ No projeto na Vercel (conectado a este repositório):
 1. **Settings → Environment Variables**
 2. Adicione:
    - **Nome:** `VITE_API_URL`  
-   - **Valor:** URL do backend (ex.: `https://advcargo-api.up.railway.app`)  
+   - **Valor:** URL do backend (ex.: `https://advcargo-production.up.railway.app`)  
    - Marque **Production**, **Preview** e **Development** se quiser.
 3. Faça um novo **Deploy** (Redeploy ou push no `main`).
 
