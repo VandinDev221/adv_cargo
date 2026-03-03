@@ -128,7 +128,7 @@ Assim as tabelas e os dados do seed (demo@advcargo.com.br, admin@hubcentral.com,
 4. **Variáveis de ambiente** (Settings → **Variables** ou **Variables** no painel):
    - `DATABASE_URL` = connection string do Neon (a mesma do passo 1).
    - `JWT_SECRET` = uma chave secreta forte (ex.: gere com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
-   - `FRONTEND_URL` = URL do frontend na Vercel (ex.: `https://adv-cargo.vercel.app`), para CORS.
+   - `FRONTEND_URL` = URL exata do frontend na Vercel (ex.: `https://adv-cargo.vercel.app`), sem barra no final — obrigatório para CORS e login.
    - (Opcional) `NODE_ENV` = `production`.
 5. **Domínio público:** em **Settings** → **Networking** → **Generate Domain**. Ex.: `https://advcargo-production.up.railway.app`.
 6. Anote essa URL — será o valor de **VITE_API_URL** na Vercel.
