@@ -55,7 +55,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors({ origin: process.env.FRONTEND_URL || 'https://localhost:5173', credentials: true }));
+// CORS: aceita FRONTEND_URL (uma ou várias origens separadas por vírgula)
+const corsOrigins = (process.env.FRONTEND_URL || 'https://localhost:5173')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (corsOrigins.includes(origin)) return cb(null, origin);
+    return cb(null, false);
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
