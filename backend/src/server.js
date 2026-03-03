@@ -55,7 +55,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS: aceita FRONTEND_URL (uma ou várias origens separadas por vírgula); em produção aceita *.vercel.app
+// CORS: aceita FRONTEND_URL ou qualquer origem *.vercel.app (login na Vercel)
 const corsOrigins = (process.env.FRONTEND_URL || 'https://localhost:5173')
   .split(',')
   .map((s) => s.trim())
@@ -64,11 +64,12 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     if (corsOrigins.includes(origin)) return cb(null, origin);
-    // Em produção: sempre permite qualquer *.vercel.app (evita CORS quando FRONTEND_URL não está definida)
-    if (isProduction && origin.endsWith('.vercel.app')) return cb(null, origin);
+    if (origin.endsWith('.vercel.app')) return cb(null, origin);
     return cb(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
