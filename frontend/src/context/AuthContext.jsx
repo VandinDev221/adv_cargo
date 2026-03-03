@@ -7,8 +7,9 @@ const API = import.meta.env.VITE_API_URL || '';
 async function parseJsonResponse(res) {
   const text = await res.text();
   const ct = res.headers.get('content-type') || '';
-  if (!ct.includes('application/json')) {
-    if (text.startsWith('<!') || text.startsWith('The page')) {
+  const looksLikeHtml = text.trimStart().startsWith('<') || text.trimStart().startsWith('The page') || text.includes('</html>');
+  if (!ct.includes('application/json') || looksLikeHtml) {
+    if (looksLikeHtml || text.startsWith('<!') || text.startsWith('The page')) {
       throw new Error('A API retornou HTML. Verifique se VITE_API_URL aponta para o backend.');
     }
     throw new Error(text.slice(0, 80) || res.statusText);

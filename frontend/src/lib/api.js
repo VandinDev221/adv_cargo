@@ -16,8 +16,9 @@ export async function api(path, options = {}) {
   if (res.status === 204) return null;
   const contentType = res.headers.get('content-type') || '';
   const text = await res.text();
-  if (!contentType.includes('application/json')) {
-    const msg = text.startsWith('<!') || text.startsWith('The page')
+  const looksLikeHtml = !text.trim() ? false : text.trimStart().startsWith('<') || text.trimStart().startsWith('The page') || text.includes('</html>');
+  if (!contentType.includes('application/json') || looksLikeHtml) {
+    const msg = looksLikeHtml || text.startsWith('<!') || text.startsWith('The page')
       ? 'A API retornou HTML em vez de JSON. Verifique se VITE_API_URL aponta para o backend (ex.: URL da API no Railway/Render).'
       : (text.slice(0, 100) || res.statusText);
     throw new Error(msg);
