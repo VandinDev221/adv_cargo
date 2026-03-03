@@ -14,7 +14,20 @@ export async function api(path, options = {}) {
     headers: { ...getHeaders(), ...options.headers },
   });
   if (res.status === 204) return null;
-  const data = await res.json().catch(() => ({}));
+  const contentType = res.headers.get('content-type') || '';
+  const text = await res.text();
+  if (!contentType.includes('application/json')) {
+    const msg = text.startsWith('<!') || text.startsWith('The page')
+      ? 'A API retornou HTML em vez de JSON. Verifique se VITE_API_URL aponta para o backend (ex.: URL da API no Railway/Render).'
+      : (text.slice(0, 100) || res.statusText);
+    throw new Error(msg);
+  }
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error('Resposta inválida da API. Verifique se o backend está no ar e a URL em VITE_API_URL.');
+  }
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
 }
@@ -33,7 +46,13 @@ export const processes = {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
-    }).then((r) => (r.ok ? r.json() : r.json().then((d) => Promise.reject(new Error(d.error || 'Erro')))));
+    }).then(async (r) => {
+      const text = await r.text();
+      let data = {};
+      try { if (text) data = JSON.parse(text); } catch (_) {}
+      if (!r.ok) return Promise.reject(new Error(data.error || text.slice(0, 80) || 'Erro no upload'));
+      return data;
+    });
   },
 };
 
