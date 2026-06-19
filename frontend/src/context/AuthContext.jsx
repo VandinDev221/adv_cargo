@@ -59,15 +59,39 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (payload) => {
-    const res = await fetch(apiUrl('/api/auth/register'), {
+    const res = await fetch(apiUrl('/api/auth/register/send-code'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     const data = await parseJsonResponse(res);
-    if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar');
+    if (!res.ok) throw new Error(data.error || 'Erro ao enviar código');
+    return data;
+  };
+
+  const sendRegisterCode = register;
+
+  const verifyRegister = async ({ email, code }) => {
+    const res = await fetch(apiUrl('/api/auth/register/verify'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || 'Erro ao verificar código');
     localStorage.setItem('token', data.token);
     setUser(data.user);
+    return data;
+  };
+
+  const resendRegisterCode = async (email) => {
+    const res = await fetch(apiUrl('/api/auth/register/resend-code'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || 'Erro ao reenviar código');
     return data;
   };
 
@@ -79,7 +103,7 @@ export function AuthProvider({ children }) {
   const getToken = () => localStorage.getItem('token');
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, getToken }}>
+    <AuthContext.Provider value={{ user, loading, login, register, sendRegisterCode, verifyRegister, resendRegisterCode, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );

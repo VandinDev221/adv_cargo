@@ -215,3 +215,16 @@ model ThreatLog {
   payload    String?  @db.Text
   createdAt  DateTime @default(now())
 }
+
+// Cadastro pendente aguardando verificação por e-mail
+model PendingRegistration {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  codeHash     String
+  name         String
+  passwordHash String
+  officeName   String?
+  attempts     Int      @default(0)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}

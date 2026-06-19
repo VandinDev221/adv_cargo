@@ -141,8 +141,12 @@ O repositório inclui um `render.yaml` (Blueprint) na raiz. Duas formas de subir
    - `JWT_SECRET` = chave forte (ex.: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
    - `FRONTEND_URL` = `https://adv-cargo.vercel.app` (sem barra no final)
    - `NODE_ENV` = `production`
+   - `RESEND_API_KEY` = chave da [Resend](https://resend.com)
+   - `RESEND_FROM` = remetente verificado (ex.: `AdvCargo <noreply@seudominio.com.br>`)
 
 **Nota:** no plano free o serviço pode hibernar após inatividade; a primeira requisição pode levar ~30s para acordar.
+
+**Verificação de e-mail:** após deploy, rode `npx prisma db push` na pasta `backend` (com `DATABASE_URL` do Neon) para criar a tabela `PendingRegistration`.
 
 ### 4. Frontend na Vercel
 
