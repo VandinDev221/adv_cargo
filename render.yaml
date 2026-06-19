@@ -1,0 +1,21 @@
+# Blueprint Render — backend AdvCargo
+# Dashboard: New → Blueprint → conecte o repositório GitHub deste projeto.
+services:
+  - type: web
+    name: advcargo-api
+    runtime: node
+    plan: free
+    region: virginia
+    rootDir: backend
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://adv-cargo.vercel.app
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
