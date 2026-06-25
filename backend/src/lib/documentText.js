@@ -36,6 +36,11 @@ function isPdfPasswordError(message = '') {
   );
 }
 
+function bufferLooksEncrypted(buffer) {
+  const sample = buffer.toString('latin1', 0, Math.min(buffer.length, 100_000));
+  return sample.includes('/Encrypt');
+}
+
 export async function extractTextFromFile(file, { pdfPassword } = {}) {
   if (!file?.buffer?.length) {
     throw new Error('Arquivo vazio ou inválido');
@@ -45,12 +50,27 @@ export async function extractTextFromFile(file, { pdfPassword } = {}) {
   const isPdf = isPdfFile(file);
 
   if (isPdf) {
+    if (bufferLooksEncrypted(file.buffer) && !pdfPassword) {
+      throw pdfPasswordError(
+        'Este PDF está protegido por senha. Informe a senha para continuar.',
+        'PDF_PASSWORD_REQUIRED',
+      );
+    }
     try {
       const options = pdfPassword ? { password: pdfPassword } : {};
       const parsed = await pdf(file.buffer, options);
       const text = parsed.text?.trim();
       if (!text) {
-        throw new Error('Não foi possível extrair texto do PDF (pode ser imagem escaneada ou senha incorreta)');
+        if (bufferLooksEncrypted(file.buffer)) {
+          if (!pdfPassword) {
+            throw pdfPasswordError(
+              'Este PDF está protegido por senha. Informe a senha para continuar.',
+              'PDF_PASSWORD_REQUIRED',
+            );
+          }
+          throw pdfPasswordError('Senha do PDF incorreta.', 'PDF_PASSWORD_INVALID');
+        }
+        throw new Error('Não foi possível extrair texto do PDF (pode ser imagem escaneada)');
       }
       return text;
     } catch (e) {

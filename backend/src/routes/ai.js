@@ -51,7 +51,7 @@ aiRoutes.post('/analyze-document', upload.single('file'), async (req, res) => {
     const status = e.code && clientErrors.has(e.code) ? 400
       : e.message?.includes('GROQ_API_KEY') ? 503
       : e.message?.includes('suportado') || e.message?.includes('curto') || e.message?.includes('longo')
-        || e.message?.includes('extrair') || e.message?.includes('senha') ? 400
+        || e.message?.includes('extrair') || e.message?.includes('senha') || e.message?.includes('protegido') ? 400
       : 500;
     console.error('[ai] analyze-document:', e?.message || e);
     res.status(status).json({

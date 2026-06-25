@@ -55,6 +55,11 @@ export default function LegalReader() {
     } catch (err) {
       if (err.code === 'PDF_PASSWORD_REQUIRED' || err.code === 'PDF_PASSWORD_INVALID') {
         setNeedsPdfPassword(true);
+      } else {
+        const msg = (err.message || '').toLowerCase();
+        if (msg.includes('senha') || msg.includes('password') || msg.includes('protegido') || msg.includes('extrair texto')) {
+          setNeedsPdfPassword(true);
+        }
       }
       setError(err.message || 'Erro ao analisar documento');
     } finally {
@@ -62,7 +67,7 @@ export default function LegalReader() {
     }
   }
 
-  const isPdf = file && (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf'));
+  const showPasswordField = mode === 'file' && !!file;
   const canSubmit = mode === 'file' ? !!file : text.trim().length >= 30;
 
   return (
@@ -148,11 +153,11 @@ export default function LegalReader() {
           </div>
         )}
 
-        {mode === 'file' && isPdf && (
+        {showPasswordField && (
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
               <Lock className="w-4 h-4" />
-              Senha do PDF {needsPdfPassword ? '(obrigatória)' : '(se o arquivo estiver protegido)'}
+              Senha do documento {needsPdfPassword ? '(obrigatória)' : '(se o PDF estiver protegido)'}
             </label>
             <input
               type="password"
