@@ -172,6 +172,7 @@ O build do frontend usa `VITE_API_URL`; a aplicação na Vercel passará a usar 
 - **Financeiro:** Honorários, despesas, receitas, saldo por período
 - **Relatórios:** Processos por status, fluxo de caixa, produtividade; exportação TXT
 - **Busca global:** Ctrl+K para buscar processos, clientes e prazos
+- **Leitor jurídico (IA):** análise de PDFs e textos com Groq — resumo, partes, prazos e ações sugeridas
 - **Modo escuro** e layout responsivo (mobile-first)
 
 ## Sistema de defesa contra ameaças

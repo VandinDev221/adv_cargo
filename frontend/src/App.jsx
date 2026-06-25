@@ -16,6 +16,7 @@ import Logs from './pages/Logs';
 import LogsTodos from './pages/LogsTodos';
 import Users from './pages/Users';
 import Security from './pages/Security';
+import LegalReader from './pages/LegalReader';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="audiencias" element={<Hearings />} />
         <Route path="financeiro" element={<Financial />} />
         <Route path="relatorios" element={<Reports />} />
+        <Route path="leitor-juridico" element={<LegalReader />} />
         <Route path="usuarios" element={<Users />} />
         <Route path="logs" element={<Logs />} />
         <Route path="logs/todos" element={<LogsTodos />} />

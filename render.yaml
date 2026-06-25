@@ -22,4 +22,8 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
+        value: AdvCargo <noreply@recevedmails.online>
+      - key: GROQ_API_KEY
         sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile

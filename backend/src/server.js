@@ -22,6 +22,7 @@ import { securityMiddleware } from './middleware/security.js';
 import { rateLimitMiddleware, getClientIp } from './lib/rateLimit.js';
 import { loadBlocklistFromDb } from './lib/blocklist.js';
 import { securityRoutes } from './routes/security.js';
+import { aiRoutes } from './routes/ai.js';
 import { addRequest } from './lib/requestBuffer.js';
 import { persistRequest } from './lib/requestLog.js';
 
@@ -111,6 +112,7 @@ app.use('/api/logs', authMiddleware, devOnlyMiddleware, logsRoutes);
 app.use('/api/offices', authMiddleware, devOnlyMiddleware, officesRoutes);
 app.use('/api/users', authMiddleware, devOnlyMiddleware, usersRoutes);
 app.use('/api/security', authMiddleware, devOnlyMiddleware, securityRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 
 app.get('/api/health', async (_, res) => {
   let db = 'ok';

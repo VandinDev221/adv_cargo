@@ -123,3 +123,29 @@ export const security = {
   report: (params) => api('/api/security/report?' + new URLSearchParams(params).toString()),
   scan: (params) => api('/api/security/scan?' + new URLSearchParams(params).toString()),
 };
+
+export const ai = {
+  analyzeDocument: async ({ file, text, instruction }) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    if (file) formData.append('file', file);
+    if (text) formData.append('text', text);
+    if (instruction) formData.append('instruction', instruction);
+
+    const res = await fetch(apiUrl('/api/ai/analyze-document'), {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    const body = await res.text();
+    let data = {};
+    try {
+      data = body ? JSON.parse(body) : {};
+    } catch {
+      throw new Error('Resposta inválida da API');
+    }
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    return data;
+  },
+};

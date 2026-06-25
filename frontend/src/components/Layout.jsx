@@ -19,6 +19,7 @@ import {
   UserCog,
   List,
   Shield,
+  Sparkles,
 } from 'lucide-react';
 import { search as searchApi } from '../lib/api';
 
@@ -30,6 +31,7 @@ const baseNav = [
   { to: '/audiencias', icon: Calendar, label: 'Audiências' },
   { to: '/financeiro', icon: Wallet, label: 'Financeiro' },
   { to: '/relatorios', icon: BarChart3, label: 'Relatórios' },
+  { to: '/leitor-juridico', icon: Sparkles, label: 'Leitor jurídico' },
 ];
 
 export default function Layout() {
