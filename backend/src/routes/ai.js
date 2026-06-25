@@ -19,9 +19,10 @@ aiRoutes.post('/analyze-document', upload.single('file'), async (req, res) => {
   try {
     let text = (req.body?.text || '').trim();
     const instruction = (req.body?.instruction || '').trim().slice(0, 500);
+    const pdfPassword = (req.body?.pdfPassword || '').trim() || undefined;
 
     if (req.file) {
-      text = await extractTextFromFile(req.file);
+      text = await extractTextFromFile(req.file, { pdfPassword });
     }
 
     text = validateExtractedText(text);
@@ -37,15 +38,25 @@ aiRoutes.post('/analyze-document', upload.single('file'), async (req, res) => {
         fileName: req.file?.originalname,
         chars: text.length,
         documentType: analysis.documentType,
+        pdfProtected: !!pdfPassword,
       },
     });
 
     res.json({ analysis, meta: { charsAnalyzed: text.length } });
   } catch (e) {
-    const status = e.message?.includes('GROQ_API_KEY') ? 503
-      : e.message?.includes('suportado') || e.message?.includes('curto') || e.message?.includes('longo') ? 400
+    const clientErrors = new Set([
+      'PDF_PASSWORD_REQUIRED',
+      'PDF_PASSWORD_INVALID',
+    ]);
+    const status = e.code && clientErrors.has(e.code) ? 400
+      : e.message?.includes('GROQ_API_KEY') ? 503
+      : e.message?.includes('suportado') || e.message?.includes('curto') || e.message?.includes('longo')
+        || e.message?.includes('extrair') || e.message?.includes('senha') ? 400
       : 500;
     console.error('[ai] analyze-document:', e?.message || e);
-    res.status(status).json({ error: e.message || 'Erro ao analisar documento' });
+    res.status(status).json({
+      error: e.message || 'Erro ao analisar documento',
+      ...(e.code && { code: e.code }),
+    });
   }
 });

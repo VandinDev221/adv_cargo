@@ -7,25 +7,66 @@ const ALLOWED_MIME = new Set([
 
 const ALLOWED_EXT = /\.(pdf|txt)$/i;
 
+export function isPdfFile(file) {
+  if (!file) return false;
+  const name = (file.originalname || '').toLowerCase();
+  return file.mimetype === 'application/pdf' || name.endsWith('.pdf');
+}
+
 export function isAllowedDocument(file) {
   if (!file) return false;
   if (ALLOWED_MIME.has(file.mimetype)) return true;
   return ALLOWED_EXT.test(file.originalname || '');
 }
 
-export async function extractTextFromFile(file) {
+function pdfPasswordError(message, code) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+function isPdfPasswordError(message = '') {
+  const m = message.toLowerCase();
+  return (
+    m.includes('password')
+    || m.includes('encrypted')
+    || m.includes('senha')
+    || m.includes('needs a password')
+    || m.includes('no password')
+  );
+}
+
+export async function extractTextFromFile(file, { pdfPassword } = {}) {
   if (!file?.buffer?.length) {
     throw new Error('Arquivo vazio ou inválido');
   }
 
   const name = (file.originalname || '').toLowerCase();
-  const isPdf = file.mimetype === 'application/pdf' || name.endsWith('.pdf');
+  const isPdf = isPdfFile(file);
 
   if (isPdf) {
-    const parsed = await pdf(file.buffer);
-    const text = parsed.text?.trim();
-    if (!text) throw new Error('Não foi possível extrair texto do PDF (pode ser imagem escaneada)');
-    return text;
+    try {
+      const options = pdfPassword ? { password: pdfPassword } : {};
+      const parsed = await pdf(file.buffer, options);
+      const text = parsed.text?.trim();
+      if (!text) {
+        throw new Error('Não foi possível extrair texto do PDF (pode ser imagem escaneada ou senha incorreta)');
+      }
+      return text;
+    } catch (e) {
+      if (e.code === 'PDF_PASSWORD_REQUIRED' || e.code === 'PDF_PASSWORD_INVALID') throw e;
+      const msg = e?.message || '';
+      if (isPdfPasswordError(msg)) {
+        if (!pdfPassword) {
+          throw pdfPasswordError(
+            'Este PDF está protegido por senha. Informe a senha para continuar.',
+            'PDF_PASSWORD_REQUIRED',
+          );
+        }
+        throw pdfPasswordError('Senha do PDF incorreta.', 'PDF_PASSWORD_INVALID');
+      }
+      throw e;
+    }
   }
 
   if (file.mimetype === 'text/plain' || name.endsWith('.txt')) {

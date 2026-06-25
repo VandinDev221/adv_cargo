@@ -9,6 +9,7 @@ import {
   ListChecks,
   Scale,
   Loader2,
+  Lock,
 } from 'lucide-react';
 import { ai } from '../lib/api';
 
@@ -27,6 +28,8 @@ export default function LegalReader() {
   const [text, setText] = useState('');
   const [instruction, setInstruction] = useState('');
   const [file, setFile] = useState(null);
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [needsPdfPassword, setNeedsPdfPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState(null);
@@ -44,16 +47,22 @@ export default function LegalReader() {
         file: mode === 'file' ? file : null,
         text: mode === 'text' ? text : '',
         instruction,
+        pdfPassword: pdfPassword || undefined,
       });
       setAnalysis(data.analysis || EMPTY);
       setMeta(data.meta);
+      setNeedsPdfPassword(false);
     } catch (err) {
+      if (err.code === 'PDF_PASSWORD_REQUIRED' || err.code === 'PDF_PASSWORD_INVALID') {
+        setNeedsPdfPassword(true);
+      }
       setError(err.message || 'Erro ao analisar documento');
     } finally {
       setLoading(false);
     }
   }
 
+  const isPdf = file && (file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf'));
   const canSubmit = mode === 'file' ? !!file : text.trim().length >= 30;
 
   return (
@@ -65,6 +74,7 @@ export default function LegalReader() {
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1">
           Envie um PDF ou texto e a IA resume partes, prazos e pontos de atenção do documento.
+          PDFs protegidos por senha são suportados.
         </p>
       </div>
 
@@ -107,7 +117,11 @@ export default function LegalReader() {
               type="file"
               accept=".pdf,.txt,application/pdf,text/plain"
               className="hidden"
-              onChange={(ev) => setFile(ev.target.files?.[0] || null)}
+              onChange={(ev) => {
+                setFile(ev.target.files?.[0] || null);
+                setPdfPassword('');
+                setNeedsPdfPassword(false);
+              }}
             />
             <Upload className="w-10 h-10 mx-auto text-slate-400 mb-3" />
             {file ? (
@@ -131,6 +145,32 @@ export default function LegalReader() {
               placeholder="Cole aqui o conteúdo da petição, sentença, contrato..."
               className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-mono"
             />
+          </div>
+        )}
+
+        {mode === 'file' && isPdf && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+              <Lock className="w-4 h-4" />
+              Senha do PDF {needsPdfPassword ? '(obrigatória)' : '(se o arquivo estiver protegido)'}
+            </label>
+            <input
+              type="password"
+              value={pdfPassword}
+              onChange={(ev) => setPdfPassword(ev.target.value)}
+              placeholder="Informe a senha de abertura do PDF"
+              autoComplete="off"
+              className={`w-full px-4 py-2 rounded-lg border bg-white dark:bg-slate-700 ${
+                needsPdfPassword
+                  ? 'border-amber-400 dark:border-amber-500 ring-1 ring-amber-400/50'
+                  : 'border-slate-300 dark:border-slate-600'
+              }`}
+            />
+            {needsPdfPassword && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                Este documento exige senha para leitura. Digite a senha e clique em Analisar novamente.
+              </p>
+            )}
           </div>
         )}
 

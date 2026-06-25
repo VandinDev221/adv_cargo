@@ -125,12 +125,13 @@ export const security = {
 };
 
 export const ai = {
-  analyzeDocument: async ({ file, text, instruction }) => {
+  analyzeDocument: async ({ file, text, instruction, pdfPassword }) => {
     const token = localStorage.getItem('token');
     const formData = new FormData();
     if (file) formData.append('file', file);
     if (text) formData.append('text', text);
     if (instruction) formData.append('instruction', instruction);
+    if (pdfPassword) formData.append('pdfPassword', pdfPassword);
 
     const res = await fetch(apiUrl('/api/ai/analyze-document'), {
       method: 'POST',
@@ -145,7 +146,11 @@ export const ai = {
     } catch {
       throw new Error('Resposta inválida da API');
     }
-    if (!res.ok) throw new Error(data.error || res.statusText);
+    if (!res.ok) {
+      const err = new Error(data.error || res.statusText);
+      if (data.code) err.code = data.code;
+      throw err;
+    }
     return data;
   },
 };
