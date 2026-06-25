@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Scale, Mail, ArrowLeft } from 'lucide-react';
-import GoogleLoginButton, { isGoogleLoginEnabled } from '../components/GoogleLoginButton';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import { useGoogleAuth } from '../context/GoogleAuthContext';
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -15,8 +16,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const { sendRegisterCode, verifyRegister, resendRegisterCode, loginWithGoogle } = useAuth();
+  const { enabled: googleEnabled, loading: googleLoading } = useGoogleAuth();
   const navigate = useNavigate();
-  const googleEnabled = isGoogleLoginEnabled();
 
   async function handleSendCode(e) {
     e.preventDefault();

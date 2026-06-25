@@ -1,13 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-
-const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
-
-export function isGoogleLoginEnabled() {
-  return Boolean(clientId);
-}
+import { useGoogleAuth } from '../context/GoogleAuthContext';
 
 export default function GoogleLoginButton({ onSuccess, onError, disabled, text = 'signin_with' }) {
+  const { enabled, loading } = useGoogleAuth();
   const containerRef = useRef(null);
   const [width, setWidth] = useState(320);
 
@@ -23,7 +19,7 @@ export default function GoogleLoginButton({ onSuccess, onError, disabled, text =
     return () => ro.disconnect();
   }, []);
 
-  if (!clientId) return null;
+  if (loading || !enabled) return null;
 
   return (
     <div

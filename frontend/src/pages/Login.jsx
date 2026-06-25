@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Scale } from 'lucide-react';
-import GoogleLoginButton, { isGoogleLoginEnabled } from '../components/GoogleLoginButton';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import { useGoogleAuth } from '../context/GoogleAuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,8 +11,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, loginWithGoogle } = useAuth();
+  const { enabled: googleEnabled, loading: googleLoading } = useGoogleAuth();
   const navigate = useNavigate();
-  const googleEnabled = isGoogleLoginEnabled();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,6 +58,10 @@ export default function Login() {
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
               {error}
             </div>
+          )}
+
+          {googleLoading && (
+            <div className="h-10 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse" aria-hidden />
           )}
 
           {googleEnabled && (
@@ -111,6 +116,12 @@ export default function Login() {
           <p className="text-center text-sm text-slate-500 dark:text-slate-400">
             Não tem conta? <Link to="/register" className="text-primary-600 hover:underline">Cadastre-se</Link>
           </p>
+
+          {!googleEnabled && !googleLoading && import.meta.env.DEV && (
+            <p className="text-xs text-center text-amber-600 dark:text-amber-400">
+              Login com Google: configure GOOGLE_CLIENT_ID no backend/.env e reinicie o backend.
+            </p>
+          )}
         </div>
       </div>
     </div>
