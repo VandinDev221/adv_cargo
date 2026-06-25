@@ -8,6 +8,10 @@
   --text: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 .dark {
@@ -27,4 +31,111 @@ body {
 /* Atalhos de teclado hint */
 kbd {
   @apply px-1.5 py-0.5 text-xs rounded bg-slate-200 dark:bg-slate-600 font-mono;
+}
+
+@layer components {
+  /* Layout de página */
+  .page-container {
+    @apply space-y-4 sm:space-y-6 max-w-full min-w-0;
+  }
+
+  .page-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4;
+  }
+
+  .page-title {
+    @apply text-xl sm:text-2xl font-bold text-slate-800 dark:text-white;
+  }
+
+  .page-description {
+    @apply text-sm text-slate-500 dark:text-slate-400 mt-0.5;
+  }
+
+  .page-actions {
+    @apply flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto sm:shrink-0;
+  }
+
+  /* Painéis e cards */
+  .panel {
+    @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden;
+  }
+
+  .panel-body {
+    @apply p-4 sm:p-6;
+  }
+
+  /* Formulários */
+  .input-field {
+    @apply w-full px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-base sm:text-sm;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 text-sm font-medium whitespace-nowrap;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm whitespace-nowrap;
+  }
+
+  /* Modal responsivo (bottom sheet no mobile) */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4;
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .modal-panel {
+    @apply w-full sm:rounded-xl rounded-t-2xl shadow-xl bg-white dark:bg-slate-800 p-5 sm:p-6 max-h-[90dvh] overflow-y-auto;
+  }
+
+  .modal-title {
+    @apply text-lg font-semibold mb-4 text-slate-800 dark:text-white;
+  }
+
+  /* Navegação por mês */
+  .month-nav {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end w-full sm:w-auto;
+  }
+
+  .month-nav-controls {
+    @apply flex items-center justify-center sm:justify-start gap-1 flex-wrap;
+  }
+
+  .month-nav-btn {
+    @apply p-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 min-w-[40px] min-h-[40px] flex items-center justify-center;
+  }
+
+  .month-nav-label {
+    @apply min-w-[130px] sm:min-w-[180px] text-center font-medium text-slate-800 dark:text-white capitalize text-sm sm:text-base px-1;
+  }
+
+  .month-nav-today {
+    @apply px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm hover:bg-slate-50 dark:hover:bg-slate-700;
+  }
+
+  /* Tabelas responsivas */
+  .table-desktop {
+    @apply hidden md:block overflow-x-auto;
+  }
+
+  .cards-mobile {
+    @apply md:hidden divide-y divide-slate-200 dark:divide-slate-700;
+  }
+
+  .mobile-card {
+    @apply block p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 active:bg-slate-100 dark:active:bg-slate-700/50 transition-colors;
+  }
+
+  /* Itens de lista (prazos, audiências) */
+  .list-item {
+    @apply flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700;
+  }
+
+  /* Safe areas */
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
 }

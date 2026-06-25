@@ -13,10 +13,11 @@ import {
   normalizeEmail,
   verifyCode,
 } from '../lib/verification.js';
+import { isGoogleAuthEnabled, verifyGoogleIdToken } from '../lib/googleAuth.js';
 
 export const authRoutes = Router();
 
-async function createUserAccount({ email, passwordHash, name, officeName }) {
+async function createUserAccount({ email, passwordHash, name, officeName, googleId = null }) {
   const office = await prisma.office.create({
     data: {
       name: officeName || name,
@@ -29,6 +30,7 @@ async function createUserAccount({ email, passwordHash, name, officeName }) {
     data: {
       email,
       password: passwordHash,
+      googleId,
       name,
       officeId: office.id,
     },
@@ -38,9 +40,21 @@ async function createUserAccount({ email, passwordHash, name, officeName }) {
   return user;
 }
 
+function sanitizeUser(user) {
+  const { password: _, ...userSafe } = user;
+  return userSafe;
+}
+
 function signToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
 }
+
+authRoutes.get('/config', (_req, res) => {
+  res.json({
+    googleLogin: isGoogleAuthEnabled(),
+    googleClientId: isGoogleAuthEnabled() ? process.env.GOOGLE_CLIENT_ID : null,
+  });
+});
 
 authRoutes.post('/register/send-code', async (req, res) => {
   try {
@@ -191,7 +205,7 @@ authRoutes.post('/register/verify', async (req, res) => {
     await prisma.pendingRegistration.delete({ where: { email: normalizedEmail } });
 
     const token = signToken(user.id);
-    const { password: _, ...userSafe } = user;
+    const userSafe = sanitizeUser(user);
 
     await logAction({
       user: { id: user.id, officeId: user.officeId },
@@ -215,7 +229,19 @@ authRoutes.post('/login', async (req, res) => {
       where: { email: normalizedEmail },
       include: { office: true },
     });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      await logAction({
+        user: null,
+        action: 'auth.login_failed',
+        req,
+        payload: { email: normalizedEmail },
+      });
+      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    }
+    if (!user.password) {
+      return res.status(401).json({ error: 'Esta conta usa login com Google. Clique em "Entrar com Google".' });
+    }
+    if (!(await bcrypt.compare(password, user.password))) {
       await logAction({
         user: null,
         action: 'auth.login_failed',
@@ -225,7 +251,7 @@ authRoutes.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Email ou senha inválidos' });
     }
     const token = signToken(user.id);
-    const { password: _, ...userSafe } = user;
+    const userSafe = sanitizeUser(user);
 
     await logAction({
       user: { id: user.id, officeId: user.officeId },
@@ -240,6 +266,77 @@ authRoutes.post('/login', async (req, res) => {
   }
 });
 
+authRoutes.post('/google', async (req, res) => {
+  try {
+    if (!isGoogleAuthEnabled()) {
+      return res.status(503).json({ error: 'Login com Google não configurado' });
+    }
+
+    const credential = String(req.body.credential || req.body.idToken || '').trim();
+    if (!credential) {
+      return res.status(400).json({ error: 'Token Google é obrigatório' });
+    }
+
+    let profile;
+    try {
+      profile = await verifyGoogleIdToken(credential);
+    } catch (err) {
+      await logAction({
+        user: null,
+        action: 'auth.login_failed',
+        req,
+        payload: { provider: 'google', reason: err.message },
+      });
+      return res.status(401).json({ error: err.message || 'Token Google inválido' });
+    }
+
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [{ googleId: profile.googleId }, { email: profile.email }],
+      },
+      include: { office: true },
+    });
+
+    let isNewUser = false;
+
+    if (user) {
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId: profile.googleId },
+          include: { office: true },
+        });
+      } else if (user.googleId !== profile.googleId) {
+        return res.status(409).json({ error: 'Conflito de conta Google. Entre em contato com o suporte.' });
+      }
+    } else {
+      user = await createUserAccount({
+        email: profile.email,
+        passwordHash: null,
+        name: profile.name,
+        officeName: profile.name,
+        googleId: profile.googleId,
+      });
+      isNewUser = true;
+    }
+
+    const token = signToken(user.id);
+    const userSafe = sanitizeUser(user);
+
+    await logAction({
+      user: { id: user.id, officeId: user.officeId },
+      action: isNewUser ? 'auth.register_google' : 'auth.login_google',
+      req,
+      payload: { email: user.email, provider: 'google' },
+    });
+
+    res.json({ user: userSafe, token, isNewUser });
+  } catch (e) {
+    console.error('[auth] google:', e?.message || e);
+    res.status(500).json({ error: e.message || 'Erro ao autenticar com Google' });
+  }
+});
+
 authRoutes.get('/me', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Token não informado' });
@@ -250,8 +347,7 @@ authRoutes.get('/me', async (req, res) => {
       include: { office: true },
     });
     if (!user) return res.status(401).json({ error: 'Usuário não encontrado' });
-    const { password: _, ...userSafe } = user;
-    res.json(userSafe);
+    res.json(sanitizeUser(user));
   } catch {
     res.status(401).json({ error: 'Token inválido' });
   }

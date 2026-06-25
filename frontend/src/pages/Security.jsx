@@ -112,13 +112,13 @@ export default function Security() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold flex items-center gap-2">
-          <Shield className="w-6 h-6 text-emerald-600" />
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title flex items-center gap-2">
+          <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
           Defesa e ameaças
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="page-actions">
           <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 dark:text-slate-400">
             <input
               type="checkbox"
@@ -182,28 +182,28 @@ export default function Security() {
         <h2 className="font-medium flex items-center gap-2 mb-3">
           <Lock className="w-5 h-5" /> Bloquear IP
         </h2>
-        <form onSubmit={handleBlock} className="flex flex-wrap gap-2 items-end">
-          <div>
+        <form onSubmit={handleBlock} className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 sm:items-end">
+          <div className="w-full sm:w-auto sm:flex-1 sm:min-w-[140px]">
             <label className="block text-sm text-slate-500 mb-1">IP</label>
             <input
               type="text"
               value={blockIp}
               onChange={(e) => setBlockIp(e.target.value)}
               placeholder="192.168.1.1"
-              className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 w-40"
+              className="input-field bg-white dark:bg-slate-700"
             />
           </div>
-          <div>
+          <div className="w-full sm:w-auto sm:flex-1 sm:min-w-[180px]">
             <label className="block text-sm text-slate-500 mb-1">Motivo (opcional)</label>
             <input
               type="text"
               value={blockReason}
               onChange={(e) => setBlockReason(e.target.value)}
               placeholder="Ex: tentativa de ataque"
-              className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 w-48"
+              className="input-field bg-white dark:bg-slate-700"
             />
           </div>
-          <button type="submit" disabled={blocking} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+          <button type="submit" disabled={blocking} className="btn-primary w-full sm:w-auto bg-red-600 hover:bg-red-700 disabled:opacity-50">
             {blocking ? 'Bloqueando...' : 'Bloquear'}
           </button>
         </form>

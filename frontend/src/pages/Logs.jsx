@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { logs as logsApi } from '../lib/api';
 import { Activity, Wifi, ShieldAlert, RefreshCw, Filter, X } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
 
 const PER_PAGE_OPTIONS = [25, 50, 100, 200];
 const METHOD_OPTIONS = ['', 'GET', 'POST', 'PATCH', 'PUT', 'DELETE'];
@@ -100,11 +101,11 @@ export default function Logs() {
   const pageCount = Math.max(Math.ceil(total / perPage), 1);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Logs do sistema</h1>
-      <p className="text-sm text-slate-500 dark:text-slate-400">
-        Monitoramento de fluxo, rede e comportamento contra ataques. Apenas usuário desenvolvedor tem acesso.
-      </p>
+    <div className="page-container">
+      <PageHeader
+        title="Logs do sistema"
+        description="Monitoramento de fluxo, rede e comportamento contra ataques. Apenas usuário desenvolvedor tem acesso."
+      />
 
       {/* Monitoramento em tempo real */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">

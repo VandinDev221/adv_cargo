@@ -3,6 +3,8 @@ import { reports } from '../lib/api';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BarChart3, FileText } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
+import MonthNav from '../components/ui/MonthNav';
 
 export default function Reports() {
   const [month, setMonth] = useState(new Date());
@@ -56,45 +58,28 @@ export default function Reports() {
   if (loading) return <p className="text-slate-500">Carregando...</p>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Relatórios</h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setMonth(subMonths(month, 1))}
-            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600"
-          >
-            ←
-          </button>
-          <span className="min-w-[160px] text-center font-medium text-slate-800 dark:text-white">
-            {format(month, 'MMMM yyyy', { locale: ptBR })}
-          </span>
-          <button
-            type="button"
-            onClick={() => setMonth(new Date())}
-            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600"
-          >
-            Hoje
-          </button>
-          <button
-            type="button"
-            onClick={exportText}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 ml-2"
-          >
+    <div className="page-container">
+      <PageHeader title="Relatórios">
+        <MonthNav
+          month={month}
+          onPrev={() => setMonth(subMonths(month, 1))}
+          onNext={() => setMonth(subMonths(month, -1))}
+          onToday={() => setMonth(new Date())}
+        >
+          <button type="button" onClick={exportText} className="btn-primary w-full sm:w-auto">
             <FileText className="w-4 h-4" /> Exportar (TXT)
           </button>
-        </div>
-      </div>
+        </MonthNav>
+      </PageHeader>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" /> Processos por status
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="panel panel-body">
+          <h2 className="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2 text-sm sm:text-base">
+            <BarChart3 className="w-5 h-5 shrink-0" /> Processos por status
           </h2>
           <ul className="space-y-2">
             {byStatus.map(({ status, count }) => (
-              <li key={status} className="flex justify-between text-slate-700 dark:text-slate-300">
+              <li key={status} className="flex justify-between text-slate-700 dark:text-slate-300 text-sm sm:text-base">
                 <span className="capitalize">{status}</span>
                 <span className="font-medium">{count}</span>
               </li>
@@ -103,19 +88,23 @@ export default function Reports() {
           </ul>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="font-semibold text-slate-800 dark:text-white mb-4">Receitas vs Despesas</h2>
-          <div className="space-y-3">
-            <p className="text-emerald-600 dark:text-emerald-400">Receitas: R$ {(cashFlow?.receitas ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-red-600 dark:text-red-400">Despesas: R$ {(cashFlow?.despesas ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className={`font-semibold ${(cashFlow?.saldo ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+        <div className="panel panel-body">
+          <h2 className="font-semibold text-slate-800 dark:text-white mb-4 text-sm sm:text-base">Receitas vs Despesas</h2>
+          <div className="space-y-3 text-sm sm:text-base">
+            <p className="text-emerald-600 dark:text-emerald-400 break-words">
+              Receitas: R$ {(cashFlow?.receitas ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-red-600 dark:text-red-400 break-words">
+              Despesas: R$ {(cashFlow?.despesas ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            <p className={`font-semibold break-words ${(cashFlow?.saldo ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               Saldo: R$ {(cashFlow?.saldo ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="font-semibold text-slate-800 dark:text-white mb-4">Produtividade</h2>
+        <div className="panel panel-body sm:col-span-2 lg:col-span-1">
+          <h2 className="font-semibold text-slate-800 dark:text-white mb-4 text-sm sm:text-base">Produtividade</h2>
           <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
             <p>Audiências realizadas: <strong>{productivity?.audiênciasRealizadas ?? 0}</strong> / {productivity?.audiênciasTotal ?? 0}</p>
             <p>Prazos cumpridos: <strong>{productivity?.prazosCumpridos ?? 0}</strong> / {productivity?.prazosTotal ?? 0}</p>

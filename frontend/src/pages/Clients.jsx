@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { clients as clientApi } from '../lib/api';
 import { Plus, Users, Search } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
+import Modal from '../components/ui/Modal';
 
 export default function Clients() {
   const [list, setList] = useState([]);
@@ -30,35 +32,28 @@ export default function Clients() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Clientes</h1>
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome, CPF/CNPJ..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => setModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-          >
-            <Plus className="w-4 h-4" /> Novo cliente
-          </button>
+    <div className="page-container">
+      <PageHeader title="Clientes">
+        <div className="relative w-full sm:w-auto sm:min-w-[200px] sm:flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nome, CPF/CNPJ..."
+            className="input-field pl-9"
+          />
         </div>
-      </div>
+        <button type="button" onClick={() => setModal(true)} className="btn-primary w-full sm:w-auto">
+          <Plus className="w-4 h-4" /> Novo cliente
+        </button>
+      </PageHeader>
 
       {loading ? (
         <p className="text-slate-500">Carregando...</p>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="panel">
+          <div className="table-desktop">
             <table className="w-full">
               <thead className="bg-slate-50 dark:bg-slate-700/50">
                 <tr>
@@ -84,6 +79,20 @@ export default function Clients() {
               </tbody>
             </table>
           </div>
+
+          <div className="cards-mobile">
+            {list.map((c) => (
+              <Link key={c.id} to={`/clientes/${c.id}`} className="mobile-card">
+                <p className="font-medium text-primary-600 dark:text-primary-400">{c.name}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">{c.document}</p>
+                <div className="flex items-center justify-between gap-2 mt-2 text-xs text-slate-500">
+                  <span className="truncate">{c.email || c.phone || 'Sem contato'}</span>
+                  <span className="shrink-0">{c._count?.processes ?? 0} processo(s)</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {list.length === 0 && (
             <div className="text-center py-12 text-slate-500">
               <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -96,81 +105,76 @@ export default function Clients() {
         </div>
       )}
 
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setModal(false)}>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold mb-4">Novo cliente</h2>
-            <form onSubmit={handleCreate} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome *</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CPF/CNPJ *</label>
-                <input
-                  type="text"
-                  value={form.document}
-                  onChange={(e) => setForm((f) => ({ ...f, document: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
-                <select
-                  value={form.type}
-                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                >
-                  <option value="pf">Pessoa Física</option>
-                  <option value="pj">Pessoa Jurídica</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
-                <input
-                  type="text"
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Endereço</label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setModal(false)} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600">
-                  Cancelar
-                </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
-                  Cadastrar
-                </button>
-              </div>
-            </form>
+      <Modal open={modal} onClose={() => setModal(false)} title="Novo cliente">
+        <form onSubmit={handleCreate} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome *</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">CPF/CNPJ *</label>
+            <input
+              type="text"
+              value={form.document}
+              onChange={(e) => setForm((f) => ({ ...f, document: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
+            <select
+              value={form.type}
+              onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+            >
+              <option value="pf">Pessoa Física</option>
+              <option value="pj">Pessoa Jurídica</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
+            <input
+              type="text"
+              value={form.phone}
+              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Endereço</label>
+            <input
+              type="text"
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+              className="input-field bg-white dark:bg-slate-700"
+            />
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setModal(false)} className="btn-secondary w-full sm:w-auto">
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary w-full sm:w-auto">
+              Cadastrar
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

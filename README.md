@@ -82,6 +82,24 @@ npm run dev
 
 Ou na raiz: `npm run dev` (sobe backend e frontend juntos).
 
+## Login com Google (opcional)
+
+1. Acesse [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **Criar credenciais** → **ID do cliente OAuth** → tipo **Aplicativo da Web**.
+2. Em **Origens JavaScript autorizadas**, adicione:
+   - `http://localhost:5173` (desenvolvimento)
+   - URL do frontend em produção (ex.: `https://adv-cargo.vercel.app`)
+3. Copie o **Client ID** e configure:
+   - **Backend** (`backend/.env`): `GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com`
+   - **Frontend** (`frontend/.env` ou variável na Vercel): `VITE_GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com`
+4. Aplique a migração do banco (campo `googleId` e senha opcional):
+
+```bash
+cd backend
+npx prisma db push
+```
+
+O botão **Entrar com Google** aparece nas telas de login e cadastro quando `VITE_GOOGLE_CLIENT_ID` está definido. Contas novas criam escritório automaticamente; se o e-mail já existir (cadastro por senha), a conta é vinculada ao Google.
+
 ## Deploy na Vercel (usar os dados que já existem)
 
 O frontend sobe na Vercel; o backend e o banco ficam em outros serviços. Este projeto usa **[Neon](https://neon.tech)** como PostgreSQL em produção (plano gratuito).
@@ -143,6 +161,7 @@ O repositório inclui um `render.yaml` (Blueprint) na raiz. Duas formas de subir
    - `NODE_ENV` = `production`
    - `RESEND_API_KEY` = chave da [Resend](https://resend.com)
    - `RESEND_FROM` = remetente verificado (ex.: `AdvCargo <noreply@seudominio.com.br>`)
+   - `GOOGLE_CLIENT_ID` = Client ID OAuth (mesmo valor do frontend)
 
 **Nota:** no plano free o serviço pode hibernar após inatividade; a primeira requisição pode levar ~30s para acordar.
 
@@ -157,6 +176,7 @@ No projeto na Vercel (conectado a este repositório):
    - **Nome:** `VITE_API_URL`  
    - **Valor:** URL do backend no Render (ex.: `https://advcargo-api.onrender.com`), sem barra no final  
    - Marque **Production**, **Preview** e **Development** se quiser.
+   - **Nome:** `VITE_GOOGLE_CLIENT_ID` — mesmo Client ID OAuth do Google Cloud (para login com Google)
 3. Faça um novo **Deploy** (Redeploy ou push no `main`).
 
 O build do frontend usa `VITE_API_URL`; a aplicação na Vercel passará a usar a API e o banco de produção com os dados do seed.
@@ -172,6 +192,7 @@ O build do frontend usa `VITE_API_URL`; a aplicação na Vercel passará a usar 
 - **Financeiro:** Honorários, despesas, receitas, saldo por período
 - **Relatórios:** Processos por status, fluxo de caixa, produtividade; exportação TXT
 - **Busca global:** Ctrl+K para buscar processos, clientes e prazos
+- **Login com Google:** OAuth via Google Identity Services (opcional)
 - **Leitor jurídico (IA):** análise de PDFs e textos com Groq — resumo, partes, prazos e ações sugeridas
 - **Modo escuro** e layout responsivo (mobile-first)
 

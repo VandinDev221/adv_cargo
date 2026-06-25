@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Scale, Mail, ArrowLeft } from 'lucide-react';
+import GoogleLoginButton, { isGoogleLoginEnabled } from '../components/GoogleLoginButton';
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -13,8 +14,9 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const { sendRegisterCode, verifyRegister, resendRegisterCode } = useAuth();
+  const { sendRegisterCode, verifyRegister, resendRegisterCode, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const googleEnabled = isGoogleLoginEnabled();
 
   async function handleSendCode(e) {
     e.preventDefault();
@@ -77,6 +79,23 @@ export default function Register() {
     }
   }
 
+  async function handleGoogleSuccess(response) {
+    if (!response.credential) {
+      setError('Não foi possível obter credencial do Google');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await loginWithGoogle(response.credential);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Erro ao cadastrar com Google');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 p-4">
       <div className="w-full max-w-sm">
@@ -96,6 +115,26 @@ export default function Register() {
                 {error}
               </div>
             )}
+
+            {googleEnabled && (
+              <>
+                <GoogleLoginButton
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Erro ao cadastrar com Google')}
+                  disabled={loading}
+                  text="signup_with"
+                />
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200 dark:border-slate-600" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-slate-800 px-2 text-slate-500">ou</span>
+                  </div>
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome</label>
               <input

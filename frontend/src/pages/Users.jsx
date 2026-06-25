@@ -3,6 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { users as usersApi, offices as officesApi } from '../lib/api';
 import { UserCog, Plus, Pencil, Trash2 } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
+import Modal from '../components/ui/Modal';
 
 const ROLES = [
   { value: 'advogado', label: 'Advogado' },
@@ -87,23 +89,18 @@ export default function Users() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gestão de usuários</h1>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-        >
+    <div className="page-container">
+      <PageHeader title="Gestão de usuários">
+        <button type="button" onClick={openCreate} className="btn-primary w-full sm:w-auto">
           <Plus className="w-4 h-4" /> Novo usuário
         </button>
-      </div>
+      </PageHeader>
 
       {loading ? (
         <p className="text-slate-500">Carregando...</p>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="panel">
+          <div className="table-desktop">
             <table className="w-full">
               <thead className="bg-slate-50 dark:bg-slate-700/50">
                 <tr>
@@ -144,6 +141,32 @@ export default function Users() {
               </tbody>
             </table>
           </div>
+
+          <div className="cards-mobile">
+            {list.map((u) => (
+              <div key={u.id} className="mobile-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-800 dark:text-white">{u.name}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 break-all">{u.email}</p>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button type="button" onClick={() => openEdit(u)} className="p-2 text-slate-500 hover:text-primary-600 rounded-lg" aria-label="Editar">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button type="button" onClick={() => setDeleteId(u.id)} className="p-2 text-slate-500 hover:text-red-500 rounded-lg" aria-label="Excluir">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
+                  <span className="capitalize">{u.role}</span>
+                  <span>·</span>
+                  <span>{u.office?.name || '—'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
           {list.length === 0 && (
             <div className="text-center py-12 text-slate-500">
               <UserCog className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -153,16 +176,9 @@ export default function Users() {
         </div>
       )}
 
-      {/* Modal criar / editar */}
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setModal(null)}>
-          <div
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-semibold mb-4">{modal === 'create' ? 'Novo usuário' : 'Editar usuário'}</h2>
-            {error && <p className="mb-3 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">{error}</p>}
-            <form onSubmit={modal === 'create' ? handleCreate : handleUpdate} className="space-y-3">
+      <Modal open={!!modal} onClose={() => setModal(null)} title={modal === 'create' ? 'Novo usuário' : 'Editar usuário'} size="md">
+        {error && <p className="mb-3 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">{error}</p>}
+        <form onSubmit={modal === 'create' ? handleCreate : handleUpdate} className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome *</label>
                 <input
@@ -222,42 +238,32 @@ export default function Users() {
                   ))}
                 </select>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setModal(null)} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setModal(null)} className="btn-secondary w-full sm:w-auto">
                   Cancelar
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">
+                <button type="submit" className="btn-primary w-full sm:w-auto">
                   {modal === 'create' ? 'Criar' : 'Salvar'}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {/* Confirmar exclusão */}
-      {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDeleteId(null)}>
-          <div
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm p-6"
-            onClick={(e) => e.stopPropagation()}
+      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Confirmar exclusão" size="sm">
+        <p className="text-slate-700 dark:text-slate-300 mb-4">Deseja realmente excluir este usuário? Esta ação não pode ser desfeita.</p>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button type="button" onClick={() => setDeleteId(null)} className="btn-secondary w-full sm:w-auto">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(deleteId)}
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm"
           >
-            <p className="text-slate-700 dark:text-slate-300 mb-4">Deseja realmente excluir este usuário? Esta ação não pode ser desfeita.</p>
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600">
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(deleteId)}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
+            Excluir
+          </button>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

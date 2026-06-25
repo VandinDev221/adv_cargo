@@ -100,10 +100,23 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const loginWithGoogle = async (credential) => {
+    const res = await fetch(apiUrl('/api/auth/google'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential }),
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || 'Erro ao entrar com Google');
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
+    return data;
+  };
+
   const getToken = () => localStorage.getItem('token');
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, sendRegisterCode, verifyRegister, resendRegisterCode, logout, getToken }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, sendRegisterCode, verifyRegister, resendRegisterCode, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );
